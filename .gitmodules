@@ -1,0 +1,3 @@
+[submodule "HMC5883L"]
+	path = HMC5883L
+	url = https://github.com/bildr-org/HMC5883L.git
