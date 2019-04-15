@@ -261,6 +261,19 @@ int fix_fft(short fr[], short fi[], short m, short inverse)
 		--k;
 		l = istep;
 	}
+	
+	Serial1.println("OK");
+    uint8_t checksum=0xAA;
+    Serial1.write(0xAA);
+    
+    for (int i=0;i!=512;i++)
+    {
+		int16_t res = fr[i];
+      Serial1.print(res);
+      Serial1.print(",");
+    }
+    Serial1.write(0xBB);
+	
 	return scale;
 }
 
@@ -290,6 +303,7 @@ int fix_fftr(short f[], int m, int inverse)
 		f[N+i-1] = f[i];
 		f[i] = tt;
 	}
+	
 	if (! inverse)
 		scale = fix_fft(fi, fr, m-1, inverse);
 	return scale;

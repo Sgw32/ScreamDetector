@@ -129,27 +129,31 @@ void processADC()
 {
   if (bufr!=bufw) {
     // process data 
-    short data[FFTLEN];
-    for (int i=0;i!=FFTLEN;i++)
+    Serial1.println(curChannel&0x7);
+    double data[maxSamples];
+    double datai[maxSamples];
+    double mean=0;
+    data[0]=0.0;
+    for (int i=0;i!=maxSamples;i++)
     {
-      data[i]=1;//(short)buffers[bufr][i];
+      data[i]=(double)buffers[bufr][i];
+      datai[i]=0.0;
+      mean+=data[i];
     }
-    fix_fftr(data, log2N, 0);
+    /*mean/=maxSamples;
+    for (int i=0;i!=maxSamples;i++)
+    {
+      data[i]-=mean;
+    }*/
     
-    Serial1.println("OK");
-    uint8_t checksum=0xAA;
-    Serial1.write(0xAA);
-    Serial1.println(curChannel&0x7);
-    for (int i=0;i!=100;i++)
-    {
-      uint16_t res = data[i];
-      Serial1.print(res);
-      Serial1.print(",");
-    }
-    Serial1.write(0xBB);
-    Serial1.println(curChannel&0x7);
+    FFT.Windowing(data, samples, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
+    FFT.Compute(data, datai, samples, FFT_FORWARD); 
+    FFT.ComplexToMagnitude(data, datai, samples);
+    
     bufr = (bufr+1)%2;
+    Serial1.println(curChannel&0x7);
     chADC((++curChannel)&0x7);
+    
   }
 }
 

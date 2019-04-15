@@ -1,18 +1,29 @@
-#include "fix_fft.h"
+#include "arduinoFFT.h"
+
 #define FFTLEN  128
 #define log2FFT   7
 #define N         (2 * FFT_SIZE)
 #define log2N     (log2FFT + 1)
+
+#define pinLED  PC13
+#define pinOUT  PB0
+
+#define sampleFreqKhz       20
+#define samplePeriodus      1000 / sampleFreqKhz
+#define ticksPerSecond      2 * sampleFreqKhz * 1000 / maxSamples
+
+#define numPins 8
+#define maxSamples 1024
 
 // Store our compass as a variable.
 HMC5883L compass;
 STM32ADC myADC(ADC1);
 UBLOX gps(Serial3,115200);
 
+arduinoFFT FFT = arduinoFFT(); /* Create FFT object */
+
 //Channels to be acquired. 
 uint8_t analogPins[] = {PA2,PA3,PA4,PA5,PA6,PA7,PB0,PB1};
-#define numPins 8
-#define maxSamples 1024
 
 uint16_t buffer[maxSamples];
 uint16_t *buffers[2];
@@ -23,18 +34,14 @@ uint8_t bufw;
 uint8_t gainCoeffs[8] = {1,1,1,1,1,1,1,1};
 uint16_t thresholdFFT = 300;
 uint8_t meanPower = 10;
-uint8_t FFTdata[256];
+uint8_t FFTdata[maxSamples];
 uint16_t upperFreq = 1000;
 uint16_t lowerFreq = 200;
 
 uint8_t curChannel = 0;
 
-#define pinLED  PC13
-#define pinOUT  PB0
-
-#define sampleFreqKhz       20
-#define samplePeriodus      1000 / sampleFreqKhz
-#define ticksPerSecond      2 * sampleFreqKhz * 1000 / maxSamples
+const uint16_t samples = maxSamples; //This value MUST ALWAYS be a power of 2
+const double samplingFrequency = sampleFreqKhz*1000; //Hz, must be less than 10000 due to ADC
 
 long ticks;
 
